@@ -1,0 +1,41 @@
+# Environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Data — never commit PDFs, indices, or model files
+data/raw_pdfs/*
+data/lancedb/*
+data/duckdb/*
+data/reports/*
+!data/raw_pdfs/.gitkeep
+!data/lancedb/.gitkeep
+!data/duckdb/.gitkeep
+!data/reports/.gitkeep
+
+# Models
+*.gguf
+*.bin
+*.pt
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Antigravity / AI assistant working directory
+.gemini/
