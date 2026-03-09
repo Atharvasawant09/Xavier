@@ -193,3 +193,17 @@ def embed_query(question: str) -> list[float]:
     prefixed = f"Represent this sentence for searching relevant passages: {question}"
     vector = model.encode([prefixed], normalize_embeddings=True)
     return vector[0].tolist()
+
+
+def delete_doc_vectors(doc_id: str):
+    """
+    Removes all vectors for a given doc_id from the LanceDB chunks table.
+    Called when a document is deleted via the API.
+    """
+    try:
+        db    = lancedb.connect(str(LANCEDB_DIR))
+        table = db.open_table("chunks")
+        table.delete(f"doc_id = '{doc_id}'")
+        logger.info(f"Deleted vectors for doc_id={doc_id}")
+    except Exception as e:
+        logger.warning(f"Could not delete vectors for {doc_id}: {e}")

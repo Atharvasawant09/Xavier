@@ -46,6 +46,15 @@ def check_memory_safe() -> bool:
         logger.warning(f"Memory usage {used}GB approaching limit.")
     return True
 
+def get_memory_info() -> dict:
+    """Returns current memory stats as a dict with used_gb and available_gb."""
+    import psutil
+    mem = psutil.virtual_memory()
+    return {
+        "used_gb":      round(mem.used      / (1024 ** 3), 2),
+        "available_gb": round(mem.available / (1024 ** 3), 2),
+        "total_gb":     round(mem.total     / (1024 ** 3), 2),
+    }
 
 # ── Token Counter ─────────────────────────────────────────────────────────────
 def count_tokens(text: str) -> int:

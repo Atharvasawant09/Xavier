@@ -20,9 +20,14 @@ TEMPLATES_DIR   = Path(os.getenv("TEMPLATES_DIR",   str(BASE_DIR / "templates"))
 MODEL_PATH      = Path(os.getenv("MODEL_PATH",      "/mnt/ssd/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf"))
 
 # ── Chunking ───────────────────────────────────────────────────────────────────
-CHUNK_SIZE          = int(os.getenv("CHUNK_SIZE",           "500"))
+CHUNK_SIZE          = int(os.getenv("CHUNK_SIZE",           "300"))
 CHUNK_OVERLAP       = int(os.getenv("CHUNK_OVERLAP",        "50"))
-MAX_CHUNKS_PER_PDF  = int(os.getenv("MAX_CHUNKS_PER_PDF",   "500"))
+MAX_CHUNKS_PER_PDF  = int(os.getenv("MAX_CHUNKS_PER_PDF",   "2000"))
+
+# ── Ingestion Limits ───────────────────────────────────────────────────────────
+MAX_PDF_PAGES       = int(os.getenv("MAX_PDF_PAGES",     "100"))
+MIN_CHUNK_TOKENS    = int(os.getenv("MIN_CHUNK_TOKENS",  "40"))
+
 
 # ── Embeddings ─────────────────────────────────────────────────────────────────
 EMBEDDING_MODEL     = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
@@ -30,10 +35,10 @@ EMBEDDING_DIM       = int(os.getenv("EMBEDDING_DIM",        "384"))
 EMBEDDING_BATCH     = int(os.getenv("EMBEDDING_BATCH",      "32"))
 
 # ── Retrieval ──────────────────────────────────────────────────────────────────
-RETRIEVAL_TOP_K         = int(os.getenv("RETRIEVAL_TOP_K",      "8"))
-RERANKER_TOP_K          = int(os.getenv("RERANKER_TOP_K",       "3"))
+RETRIEVAL_TOP_K         = int(os.getenv("RETRIEVAL_TOP_K",      "20"))
+RERANKER_TOP_K          = int(os.getenv("RERANKER_TOP_K",       "5"))
 RERANKER_MODEL          = os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
-RERANKER_MIN_SCORE      = float(os.getenv("RERANKER_MIN_SCORE", "-3.0"))
+RERANKER_MIN_SCORE      = float(os.getenv("RERANKER_MIN_SCORE", "-5.0"))
 
 # ── LLM ────────────────────────────────────────────────────────────────────────
 LLM_CONTEXT_WINDOW  = int(os.getenv("LLM_CONTEXT_WINDOW",  "4096"))

@@ -1,42 +1,64 @@
 """
-main.py — FastAPI entrypoint. Initialises DB, ensures directories, registers routes.
+main.py — FastAPI application entry point for DocInt.
 """
 
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from app.db import init_db
-from app.utils import get_logger, log_memory, ensure_dirs
-from app.config import RAW_PDF_DIR, LANCEDB_DIR, REPORTS_DIR, TEMPLATES_DIR, DUCKDB_PATH
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.routers import documents, query, health
+from app.utils import get_logger, log_memory
+from app.db import get_conn
 
 logger = get_logger("main")
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("=== Document Intelligence System starting ===")
-    ensure_dirs(RAW_PDF_DIR, LANCEDB_DIR, REPORTS_DIR, TEMPLATES_DIR, DUCKDB_PATH.parent)
-    init_db()
-    log_memory("startup")
-    logger.info("=== Startup complete ===")
-    yield
-    logger.info("=== Shutting down ===")
-
-
 app = FastAPI(
-    title="Document Intelligence System",
-    description="Private, local document assistant. Runs entirely on NVIDIA Jetson Xavier.",
-    version="0.1.0",
-    lifespan=lifespan,
+    title       = "DocInt — Document Intelligence API",
+    description = "PDF ingestion, semantic retrieval, and LLM-powered Q&A.",
+    version     = "1.0.0",
 )
 
+# ── CORS ──────────────────────────────────────────────────────────────────────
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins     = ["*"],
+    allow_credentials = True,
+    allow_methods     = ["*"],
+    allow_headers     = ["*"],
+)
 
-@app.get("/health", tags=["System"])
-async def health():
-    """Basic health check — returns system status and current memory usage."""
-    from app.utils import get_memory_usage_gb, get_available_memory_gb
-    return {
-        "status": "ok",
-        "version": "0.1.0",
-        "memory_used_gb": get_memory_usage_gb(),
-        "memory_available_gb": get_available_memory_gb(),
-    }
+# ── Global Error Handlers ─────────────────────────────────────────────────────
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    return JSONResponse(
+        status_code = 404,
+        content     = {"error": "Not found", "path": str(request.url)},
+    )
+
+@app.exception_handler(500)
+async def server_error_handler(request: Request, exc):
+    logger.error(f"Unhandled error on {request.url}: {exc}")
+    return JSONResponse(
+        status_code = 500,
+        content     = {"error": "Internal server error"},
+    )
+
+# ── Routers ───────────────────────────────────────────────────────────────────
+
+app.include_router(health.router)
+app.include_router(documents.router)
+app.include_router(query.router)
+
+# ── Startup / Shutdown ────────────────────────────────────────────────────────
+
+@app.on_event("startup")
+async def startup():
+    logger.info("DocInt API starting up...")
+    get_conn()          # initialise DuckDB + schema
+    log_memory("startup")
+    logger.info("DocInt API ready.")
+
+@app.on_event("shutdown")
+async def shutdown():
+    logger.info("DocInt API shutting down.")

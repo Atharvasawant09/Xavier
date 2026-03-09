@@ -60,8 +60,11 @@ def main():
             visibility=args.visibility
         )
     except ValueError as e:
-        # Deduplication — clean skip, not a crash
-        print(f"\n  ⚠️  SKIPPED — {e}")
+        msg = str(e)
+        if "already indexed" in msg:
+            print(f"\n  ⚠️  SKIPPED — {msg}")
+        else:
+            print(f"\n  ❌  REJECTED — {msg}")
         print(f"  To re-ingest, first run:")
         print(f"    python -m scripts.delete_doc --doc_id <id>")
         print(f"\n  Or list all documents with:")
