@@ -452,6 +452,15 @@ with tab_query:
             height      = 60,
             label_visibility = "collapsed",
         )
+        fc1, fc2 = st.columns([5, 1])
+        with fc2:
+            ans_style = st.selectbox(
+                "Answer Style",
+                options = ["Auto", "Brief", "Detailed"],
+                index   = 0,
+                label_visibility = "visible",
+                key = "ans_style_select",
+            )
         submitted = st.form_submit_button("Search", use_container_width=True)
 
     if submitted:
@@ -469,10 +478,16 @@ with tab_query:
                 "Verifying source citations...",
                 "Almost there...",
             ]
+            _style_suffix = {
+                "Brief":    "\n\nPlease answer concisely in 2-3 sentences only.",
+                "Detailed": "\n\nPlease provide a detailed, thorough explanation with all relevant details.",
+                "Auto":     "",
+            }.get(ans_style, "")
+            _question_final = question.strip() + _style_suffix
             _qresult = {"resp": None, "status": None, "done": False}
             def _do_query():
                 r, s = api_post("/query", json_data={
-                    "question": question,
+                    "question": _question_final,
                     "user_id":  active_user,
                 })
                 _qresult["resp"], _qresult["status"], _qresult["done"] = r, s, True
