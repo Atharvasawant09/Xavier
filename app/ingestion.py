@@ -25,40 +25,9 @@ from app.db import (
 
 logger = get_logger("ingestion")
 
-SECTION_MAP = {
-    "8.1": "Functional Requirements",
-    "8.2": "Non-Functional Requirements",
-    "9.1": "System Architecture",
-    "9.2": "Data Flow Diagram",
-    "9.3": "Data Flow Diagram Level 1",
-    "9.4": "Activity Diagram",
-    "9.5": "ML Models Layer",
-    "9.6": "RAG System Layer",
-    "9.7": "Sprint Planning",
-    "10.1": "Implementation Overview",
-    "10.2": "Data Pre-processing",
-    "10.3": "Feature Engineering",
-    "10.4": "Data Training",
-    "10.5": "Model Evaluation",
-    "10.6": "Frontend Implementation",
-    "10.7": "Backend Implementation",
-    "11.1": "Deployment Architecture",
-    "11.2": "Deployment Steps",
-    "12.1": "Unit Testing",
-    "12.2": "Integration Testing",
-    "12.3": "Performance Testing",
-    "1.1":  "Background",
-    "1.2":  "Existing Tools",
-    "1.3":  "Project Motivation",
-    "1.4":  "Project Overview",
-    "1.5":  "Project Goals",
-    "1.6":  "Irrigation Methods",
-    "2.1":  "Climate Change Overview",
-    "2.2":  "Scientific Gaps",
-    "2.3":  "Research Gap",
-    "3.1":  "Primary Objectives",
-    "3.2":  "Secondary Objectives",
-}
+# SECTION_MAP removed: it was hardcoded to one project's section numbers and
+# poisoned chunks from any other PDF that happened to share section numbers.
+# Heading context is now derived purely from the heading text itself.
 
 
 # ── Text Extraction ───────────────────────────────────────────────────────────
@@ -171,11 +140,9 @@ def is_heading(text: str) -> bool:
 
 
 def infer_parent_heading(text: str) -> str:
-    match = re.match(r'^(\d+)\.(\d+)\.(\d+)', text.strip())
-    if not match:
-        return ""
-    parent_key = f"{match.group(1)}.{match.group(2)}"
-    return SECTION_MAP.get(parent_key, "")
+    # No longer looks up a hardcoded map — returns empty string so
+    # each heading is used verbatim without injecting foreign labels.
+    return ""
 
 
 # ── Chunking ──────────────────────────────────────────────────────────────────
@@ -242,10 +209,12 @@ def create_chunks(pages: list[dict], doc_id: str) -> list[dict]:
                 if chunk:
                     chunks.append(chunk)
                     chunk_index += 1
-            parent = infer_parent_heading(heading_text)
-            current_heading = f"{parent}: {heading_text}" if parent else heading_text
-            sentence_buffer = []
-            token_buffer    = 0
+            current_heading = heading_text
+            # Seed the new buffer with the heading text itself so it is always
+            # embedded in at least one chunk — this gives the retriever a
+            # semantic anchor for heading-level queries on any PDF.
+            sentence_buffer = [(heading_text, page_num)]
+            token_buffer    = count_tokens(heading_text)
             i += 1
             continue
 

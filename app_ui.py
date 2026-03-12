@@ -361,7 +361,7 @@ def api_get(path, params=None):
 def api_post(path, json_data=None, files=None, data=None):
     try:
         r = requests.post(f"{API}{path}", json=json_data,
-                          files=files, data=data, timeout=120)
+                          files=files, data=data, timeout=300)
         return r.json(), r.status_code
     except Exception as e:
         return {"error": str(e)}, 500
@@ -405,7 +405,7 @@ if logo_path.exists():
         b64 = base64.b64encode(f.read()).decode()
     header_html += f'<img src="data:image/png;base64,{b64}" alt="Logo" /><br/>'
 header_html += """
-    <h1>Document Intelligence System</h1>
+    <h1>AI Assistant</h1>
     <p>Semantic search and grounded Q&amp;A over your document library</p>
 </div>
 """
