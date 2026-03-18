@@ -2,13 +2,22 @@
 main.py — FastAPI application entry point for DocInt.
 """
 
+try:
+    import torch
+    import sklearn
+    import scipy
+
+except ImportError:
+    pass
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import documents, query, health
 from app.utils import get_logger, log_memory
-from app.db import get_conn
+from app.db import init_db
+from app.embeddings import get_lancedb_table
 
 logger = get_logger("main")
 
@@ -55,7 +64,8 @@ app.include_router(query.router)
 @app.on_event("startup")
 async def startup():
     logger.info("DocInt API starting up...")
-    get_conn()          # initialise DuckDB + schema
+    init_db()          # initialise DuckDB + schema
+    get_lancedb_table()  # initialise LanceDB chunks table
     log_memory("startup")
     logger.info("DocInt API ready.")
 

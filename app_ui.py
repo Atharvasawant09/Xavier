@@ -20,10 +20,8 @@ st.set_page_config(
 # ── Custom CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
     html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
         background-color: #f9fafb;
     }
     #MainMenu { visibility: hidden; }
