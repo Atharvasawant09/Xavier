@@ -3,6 +3,14 @@ embeddings.py — Embedding generation and LanceDB vector storage.
 Uses BAAI/bge-small-en-v1.5. Stores vectors in LanceDB (SSD-native).
 Model is loaded once and reused across calls.
 """
+try:
+    import torch
+    import sklearn
+    import scipy
+
+except ImportError:
+    pass
+
 
 import numpy as np
 from pathlib import Path

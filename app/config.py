@@ -9,6 +9,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _model_ref(env_name: str, default: str) -> str:
+    """
+    Returns either a remote model id (e.g. Hugging Face repo id) or a local path.
+    Expands local-style paths so offline deployments can use absolute, relative,
+    or home-directory based model folders consistently.
+    """
+    value = os.getenv(env_name, default)
+    if value.startswith(("~", ".", "/")):
+        return str(Path(value).expanduser().resolve())
+    return value
+
 # ── Base Paths ─────────────────────────────────────────────────────────────────
 BASE_DIR        = Path(__file__).resolve().parent.parent
 DATA_DIR        = Path(os.getenv("DATA_DIR",        str(BASE_DIR / "data")))
@@ -17,7 +29,7 @@ LANCEDB_DIR     = Path(os.getenv("LANCEDB_DIR",     str(DATA_DIR / "lancedb")))
 DUCKDB_PATH     = Path(os.getenv("DUCKDB_PATH",     str(DATA_DIR / "duckdb" / "docint.db")))
 REPORTS_DIR     = Path(os.getenv("REPORTS_DIR",     str(DATA_DIR / "reports")))
 TEMPLATES_DIR   = Path(os.getenv("TEMPLATES_DIR",   str(BASE_DIR / "templates")))
-MODEL_PATH      = Path(os.getenv("MODEL_PATH",      "/mnt/ssd/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf"))
+MODEL_PATH      = Path(os.getenv("MODEL_PATH",      "/mnt/ssd/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf")).expanduser()
 
 # ── Chunking ───────────────────────────────────────────────────────────────────
 CHUNK_SIZE          = int(os.getenv("CHUNK_SIZE",           "300"))
@@ -30,14 +42,14 @@ MIN_CHUNK_TOKENS    = int(os.getenv("MIN_CHUNK_TOKENS",  "40"))
 
 
 # ── Embeddings ─────────────────────────────────────────────────────────────────
-EMBEDDING_MODEL     = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
+EMBEDDING_MODEL     = _model_ref("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
 EMBEDDING_DIM       = int(os.getenv("EMBEDDING_DIM",        "384"))
 EMBEDDING_BATCH     = int(os.getenv("EMBEDDING_BATCH",      "32"))
 
 # ── Retrieval ──────────────────────────────────────────────────────────────────
 RETRIEVAL_TOP_K         = int(os.getenv("RETRIEVAL_TOP_K",      "20"))
 RERANKER_TOP_K          = int(os.getenv("RERANKER_TOP_K",       "5"))
-RERANKER_MODEL          = os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+RERANKER_MODEL          = _model_ref("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
 RERANKER_MIN_SCORE      = float(os.getenv("RERANKER_MIN_SCORE", "-5.0"))
 
 # ── LLM ────────────────────────────────────────────────────────────────────────
